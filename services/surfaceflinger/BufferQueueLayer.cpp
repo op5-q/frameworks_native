@@ -206,6 +206,10 @@ int BufferQueueLayer::getDrawingApi() const {
     return mConsumer->getCurrentApi();
 }
 
+PixelFormat BufferQueueLayer::getPixelFormat() const {
+    return mFormat;
+}
+
 uint64_t BufferQueueLayer::getFrameNumber() const {
     Mutex::Autolock lock(mQueueItemLock);
     uint64_t frameNumber = mQueueItems[0].mFrameNumber;
@@ -478,7 +482,6 @@ void BufferQueueLayer::onFrameAvailable(const BufferItem& item) {
             status_t result = mQueueItemCondition.waitRelative(mQueueItemLock, ms2ns(500));
             if (result != NO_ERROR) {
                 ALOGE("[%s] Timed out waiting on callback", mName.string());
-                break;
             }
         }
 
@@ -551,7 +554,6 @@ void BufferQueueLayer::onFrameReplaced(const BufferItem& item) {
             status_t result = mQueueItemCondition.waitRelative(mQueueItemLock, ms2ns(500));
             if (result != NO_ERROR) {
                 ALOGE("[%s] Timed out waiting on callback", mName.string());
-                break;
             }
         }
 
@@ -620,6 +622,8 @@ status_t BufferQueueLayer::setDefaultBufferProperties(uint32_t w, uint32_t h, Pi
         ALOGE("dimensions too large %u x %u", uint32_t(w), uint32_t(h));
         return BAD_VALUE;
     }
+
+    mFormat = format;
 
     setDefaultBufferSize(w, h);
     mConsumer->setDefaultBufferFormat(format);
